@@ -1,0 +1,51 @@
+import pandas as pd
+import glob
+import os
+
+def read_file(file):
+    _, ext = os.path.splitext(file)
+    if ext == '.xlsx':
+        return pd.read_excel(file, engine='openpyxl')
+    elif ext == '.csv':
+        return pd.read_csv(file)
+    else:
+        return None
+
+folder_path = r"**(INSERT YOUR FOLDER PATH HERE)**"  # Updated folder path
+
+# Load all spreadsheets in the folder
+all_files = glob.glob(os.path.join(folder_path, "*.*"))
+
+# Filter out temporary Excel files and unsupported formats
+all_files = [file for file in all_files if not os.path.basename(file).startswith('~$') and (file.endswith('.xlsx') or file.endswith('.csv'))]
+
+# Read and store all spreadsheets data in a list
+data_frames = []
+for file in all_files:
+    data_frame = read_file(file)
+    if data_frame is not None:
+        if 'notes' in data_frame.columns:
+            data_frame.rename(columns={'notes': 'note'}, inplace=True)
+        elif 'note' not in data_frame.columns:
+            data_frame['note'] = ''
+        data_frame['spreadsheet'] = os.path.basename(file)
+        data_frames.append(data_frame)
+
+# Combine all data into a single DataFrame
+combined_data = pd.concat(data_frames)
+
+# Find IPs that appear in more than one spreadsheet
+duplicate_ips = combined_data[combined_data.duplicated(subset=['src'], keep=False)].sort_values('src')
+
+# Pivot the data to have the spreadsheet names as columns
+pivoted_data = duplicate_ips.pivot_table(index='src', columns='spreadsheet', values='note', aggfunc='first')
+
+# Reset index and rename the columns
+pivoted_data.reset_index(inplace=True)
+pivoted_data.columns.name = None
+
+# Save the result to a new CSV file
+output_file = os.path.join(folder_path, "duplicate_ips.csv")
+pivoted_data.to_csv(output_file, index=False)
+
+print(f"Duplicate IPs have been saved to {output_file}")
