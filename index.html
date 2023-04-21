@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malware Query</title>
+</head>
+<body>
+    <h1>Malware Query</h1>
+    <form action="/query" method="post">
+        <label for="indicator">Enter Indicator (IP, Domain, or Hash):</label>
+        <input type="text" name="indicator" required><br><br>
+
+        <input type="checkbox" id="hybrid_analysis" onclick="document.getElementById('hybrid_analysis_key').disabled = !this.checked;">
+        <label for="hybrid_analysis">Hybrid Analysis</label>
+        <input type="text" id="hybrid_analysis_key" name="hybrid_analysis_key" placeholder="API Key" disabled><br><br>
+
+        <input type="checkbox" id="virustotal" onclick="document.getElementById('virustotal_key').disabled = !this.checked;">
+        <label for="virustotal">VirusTotal</label>
+        <input type="text" id="virustotal_key" name="virustotal_key" placeholder="API Key" disabled><br><br>
+
+        <input type="checkbox" id="malware_bazaar" onclick="document.getElementById('malware_bazaar_key').disabled = !this.checked;">
+        <label for="malware_bazaar">Malware Bazaar</label>
+        <input type="text" id="malware_bazaar_key" name="malware_bazaar_key" placeholder="API Key" disabled><br><br>
+
+        <input type="submit" value="Submit Query">
+    </form>
+</body>
+</html>
