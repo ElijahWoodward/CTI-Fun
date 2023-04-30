@@ -1,3 +1,5 @@
+# This script will output a csv called "Connections.csv" with a full list of all connections on the endpoint along with local and remote ports and IP addresses.
+# RDP and SMB (3389/445) connections are at the top.
 # Define variables
 $ports = @(3389, 445)
 $outputFile = "connections.csv"
