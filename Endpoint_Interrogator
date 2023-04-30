@@ -1,0 +1,54 @@
+# Define variables
+$ports = @(3389, 445)
+$outputFile = "connections.csv"
+
+# Get active connections
+$connections = Get-NetTCPConnection -State Established
+
+# Initialize an empty array to store connection information
+$connectionInfo = @()
+
+foreach ($connection in $connections) {
+    try {
+        # Get process information
+        $process = Get-Process -Id $connection.OwningProcess
+
+        # Perform DNS lookup for the remote address
+        $dnsName = ""
+        try {
+            $dnsEntry = [System.Net.Dns]::GetHostEntry($connection.RemoteAddress)
+            $dnsName = $dnsEntry.HostName
+        }
+        catch {
+            $dnsName = "Not found"
+        }
+
+        # Store connection details in a custom object
+        $connectionDetails = New-Object -TypeName PSObject -Property @{
+            ApplicationName = $process.Name
+            DestinationAddress = $connection.RemoteAddress
+            DestinationDNS = $dnsName
+            LocalPort = $connection.LocalPort
+            RemotePort = $connection.RemotePort
+            Duration = ((Get-Date) - $process.StartTime).ToString()
+        }
+
+        # Check if the connection is on port 3389 or 445
+        if ($ports -contains $connection.LocalPort -or $ports -contains $connection.RemotePort) {
+            # Add prioritized connections at the beginning of the array
+            $connectionInfo = @($connectionDetails) + $connectionInfo
+        } else {
+            # Add other connections at the end of the array
+            $connectionInfo += $connectionDetails
+        }
+    }
+    catch {
+        Write-Host "Error retrieving information for process $($connection.OwningProcess)"
+    }
+}
+
+# Export connection information to CSV
+$connectionInfo | Export-Csv -Path $outputFile -NoTypeInformation
+
+# Display connection information on screen
+$connectionInfo
